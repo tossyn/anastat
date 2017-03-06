@@ -1,0 +1,25 @@
+{% extends "account/base.html" %}
+crispy_forms_tags %}
+{% load i18n %}
+
+{% block head_title %}{% trans "Disapprove Transaction" %}{% endblock %}
+
+{% block content %}
+<div class ='row'>
+<div class= 'col-sm-6 col-sm-offset-3'> 
+<h1>{% trans "Disapprove Transaction" %}</h1>
+
+<p>{% trans 'Are you sure you want to disapprove this transaction request?' %}</p>
+
+<form method="post" action="{% url 'disapprove_transaction' pk=pk %}?next={{request.path}}">
+  {% csrf_token %}
+  {% if redirect_field_value %}
+  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+  {% endif %}
+  <button type="submit" class = "btn btn-warning" >{% trans 'Disapprove' %}</button>
+  <a class="btn btn-primary" href="{% url 'affiliate_manager' %}" >{% trans 'No' %}</a>
+</form>
+</div>
+</div>
+
+{% endblock %}

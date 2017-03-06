@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% load i18n %}
+
+{% block head_title %}{% trans "Registration Completed" %}
+{% endblock %}
+
+{% block content %}
+<div class ='row'>
+<div class= 'col-sm-6 col-sm-offset-3'>
+<div class= "panel panel-default">
+<div class="panel-heading" >
+<div class ='panel-title'><h1> This is the Sign Up process</h1>
+<p>Step {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</p>
+<br>
+</div>
+</div>
+
+<form method="post" enctype="multipart/form-data" >
+<div class='panel-body'>
+{% csrf_token %}
+{{ wizard.form.media }}
+{{ wizard.management_form }}
+{% if wizard.form.forms %}
+    {{ wizard.form.management_form }}
+    {% for form in wizard.form.forms %}
+        {{ form|crispy }}
+    {% endfor %}
+{% else %}
+    {{ wizard.form|crispy }}
+{% endif %}
+</div>
+<div class= 'panel-footer'>
+{% if wizard.steps.prev %}
+<button class="btn btn-default" name="wizard_goto_step" type="submit" value="{{ wizard.steps.first }}">{% trans "first step" %}</button>
+<button class="btn btn-default"name="wizard_goto_step" type="submit" value="{{ wizard.steps.prev }}">{% trans "prev step" %}</button>
+{% endif %}
+<input class="btn btn-default"type="submit" class="btn btn-default"name="submit" value="{% trans "submit" %}" />
+</div>
+</form>
+</div>
+</div>
+</div>
+{% endblock%}

@@ -1,0 +1,69 @@
+<!-- <aside class="main-sidebar"> -->
+
+    <!-- sidebar: style can be found in sidebar.less -->
+    <div class="sidebar">    
+
+      <div class ="panel" style=" font-size: 18px; margin-top: -18px;">
+      <div class='panel-heading with border'>
+        <h3> DATABASE </h3>
+      </div>
+      <div class="panel-body">
+      <!-- Sidebar Menu -->      
+      <ul class="sidebar-menu">
+        {% if com_data %}
+        {% for component, databases in com_data.items %}
+          <li class="treeview">            
+            <a href=""><i class="fa fa-link"></i> <span>{{ component.name }}</span>
+              <span class="pull-right-container">
+                <i class="fa fa-angle-left pull-right"></i>
+              </span>
+            </a>
+            <ul class="treeview-menu">
+              {% for database in databases %}
+              <div class="row">
+                <div class ="col-md-10">                
+                  <li style="margin: 3px;"><a href="{% url 'sales_table' pk=database.pk %} " class="btn btn-default btn-md">{{ database.name|truncatechars:50 }}</a></li>
+                </div>
+                <div class="col-md-2">
+                  <!-- <div class="container">                    
+                    <a href="#" data-toggle="popover" title="{{ database.name }}-{{ database.code }}" data-content="{{ database.description }}">info</a>
+                  </div> -->
+
+                  <button type="button" class="btn btn-block btn-default btn-xs" data-toggle="modal" data-target="#{{ database.id }}" style="margin: 3px;">Info</button>
+                  </div>
+
+                  <!-- Modal -->
+                  <div class="modal fade" id="{{ database.id }}" tabindex="-1" role="dialog" aria-labelledby="{{ database.code }}" aria-hidden="true" style="color: black;">
+                    <div class="modal-dialog" role="document">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" area-label="Close" ><span aria-hidden="true">&times;</span></button>
+                          <h4 class="modal-title" id="{{ database.code }}">{{ database.name }}</h4>
+                        </div>
+                        <div class="modal-body">
+                          {{ database.description }}
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                          <button type="button" class="btn btn-primary">Select Database</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                
+              </div>
+              {% endfor %}                   
+            </ul>
+          </li>                       
+          {% endfor %}
+          {% endif %}          
+        </ul>
+        </div>
+        </div>
+        </div>        
+      
+      
+      <!-- /.sidebar-menu -->
+
+    <!-- /.sidebar -->
+  <!-- </aside> -->

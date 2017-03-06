@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block style %}
+<style>
+	
+</style>
+{% endblock %}
+
+
+
+{% block content %}
+
+{% block jumbotron %}
+
+{% endblock %}
+
+<!-- Main content -->
+    <section class="content">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="box">
+            <div class="box-header">
+              <h2>Pending Transaction Requests - Acc Bal. N{{ institution.account.balance}} </h2>
+            </div>    
+            <!-- /.panel-header -->
+            <div class="box-body">
+              <table id=data_box class="table table-bordered table-hover table-stripe">
+                <thead>
+                <tr>
+                  <th>TRANSCATION ID</th>
+                  <th>USER</th>                  
+                  <th>DATA PRICE WITH 5% VAT</th>
+                  <th>REQUEST DATE/TIME</th>
+                  <th>CONTROL-1</th>
+                  <th>CONTROL-2</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% if data %}
+                {% for item in data  %}
+                <tr>
+                  <td><button type="button" class="btn btn-default" data-toggle="modal" data-target="#{{ item.id }}" >{{ item.transaction_id|truncatechars:10 }}</button>
+                    <!-- Modal -->
+                      <div class="modal fade" id="{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="{{ item.transaction_id }}" aria-hidden="true" style="color: black;">
+                        <div class="modal-dialog" role="document">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" area-label="Close" ><span aria-hidden="true">&times;</span></button>
+                                  <h4 class="modal-title" id="{{ Item.id }}">Transaction {{ item.transaction_id }} Details</h4>
+                              </div>
+                            <div class="modal-body">
+                              <table class="table table-bordered table-hover table-stripe" >
+                                <thead>
+                                  <tr>                    
+                                    <th>DATABASE</th>
+                                    <th>VARIABLE(S)</th>
+                                    <th>TABLE</th>
+                                    <th>CATEGORY(IES)</th>
+                                    <th>YEAR(S)</th>
+                                    <th>DATA COST</th>
+                          
+                                  </tr>
+                                </thead>
+                                <tbody>                         
+                                  {% for data in item.data_requests.all  %}
+                                  <tr>                    
+                                    <td>{{ data.table.database }}</td>
+                                    <td>{{ data.display_variables }}</td>
+                                    <td>{{ data.code }}</td>
+                                    <td>{{ data.display_categories_of_aggregation }}</td>
+                                    <td>{{ data.display_years }}</td>
+                                    <td>{{ data.data_price }}</td>
+                                  </tr>
+                                  {% endfor %}  
+                                </tbody>                  
+                              </table>             
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary">Do something</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>                    
+                    </td>
+                    <td><button type="button" class="btn btn-block btn-default" data-toggle="modal" data-target="#{{ item.transaction_id }}" >{{ item.user.username }}</button>
+                    <!-- Modal -->
+                      <div class="modal fade" id="{{ item.transaction_id }}" tabindex="-1" role="dialog" aria-labelledby="{{ item.transaction_id }}" aria-hidden="true" style="color: black;">
+                        <div class="modal-dialog" role="document">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" area-label="Close" ><span aria-hidden="true">&times;</span></button>
+                                  <h4 class="modal-title" id="{{ item.id }}">{{ item.user.username }}'s Previous Transaction</h4>
+                              </div>
+                            <div class="modal-body">
+                          <table id=data_box class="table table-bordered table-hover table-stripe">
+                <thead>
+                  <tr>                    
+                    <th>Transaction Id</th>
+                    <th>Request Date</th>
+                    {% if request.user.profile.affiliate_membership and request.user.profile.membership_approved %}
+                    <th>Approved</th>
+                    {% endif %}
+                    <th>Payment Confirmed</th>
+                    <th>Total Cost</th>
+                    <th>Delivery Status</th>    
+                  </tr>
+                  </thead>
+                  <tbody>
+                  
+                  {% for data in data_approved  %}
+                  {% if data.user.username == item.user.username %}
+                  
+                  <tr>                    
+                    <td>{{ data.transaction_id }}</td>
+                    <td>{{ data.time }}</td>
+                    {% if request.user.profile.affiliate_membership and request.user.profile.membership_approved %}
+                    <td>{% if data.payment_mode == 'AP' %} {% if data.affiliate_manager_approved == True %}Approve{% elif data.affiliate_manager_approved == False %} Disapproved {% else %} Pending {% endif %} {% else %} ------ {% endif %}</td>
+                    {% endif %}
+                    <td>{% if data.payment_mode != 'AP' %} {% if data.payment_confirmed == True %}Confirmed{% elif data.item.payment_confirmed == False %} Not yet{% else %} Pending {% endif %} {% else %} ------ {% endif %} </td>
+                    <td>{{ item.cost_with_vats}}</td>
+                    <td>{% if data.data_delivered == True  %}Delivered{% elif data.data_delivered == False %} Not yet{% else %} Pending {% endif %}</td>
+                  </tr>
+                  {% endif %}                  
+                  {% endfor %}                  
+                  </tbody>                  
+                </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Do something</button>
+                </div>
+                </div>
+              </div>
+              </div>
+                  </td>                  
+                  <td>{{ item.cost_with_vats}}</td>
+                  <td>{{ item.time }}</td>
+                  <td>
+                    <a class="btn btn-success" href="{% url 'approve_transaction' pk=item.pk %}" >
+                    <i class="fa fa-edit">approve</i></a>
+                  </td>
+                  <td>
+                    <a class="btn btn-warning" href="{% url 'disapprove_transaction' pk=item.pk %}" >
+                    <i class="fa fa-edit">disapprove</i></a>
+                  </td>
+                  </tr>
+                {% endfor %}
+                {% endif %}
+                </tbody>  
+              </table>
+            </div>
+          </div>          
+        </div>
+      <!-- </div> -->
+
+<!-- Membership Approval -->
+      <!-- <div class="row"> -->
+        <div class="col-md-6">
+          <div class="box">
+            <div class="box-header">
+              <h2>Pending Membership Approval Request</h2>
+            </div>    
+            <!-- /.panel-header -->
+            <div class="box-body">
+              <table id=data_box1 class="table table-bordered table-hover table-stripe" >
+                <thead>
+                <tr>                 
+                  <th>FIRST NAME</th>
+                  <th>LAST NAME</th>
+                  <th>USERNAME</th>
+                  <th>IDENTIFICATION NUMBER</th>
+                  <th>APPROVE</th>
+                  <th>DISAPPROVE</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% if data1 %}
+                {% for item in data1  %}
+                <tr>
+                  <td>{{ item.user.first_name }}</td>
+                  <td>{{ item.user.last_name }}</td>
+                  <td>{{ item.user.username }}</td>
+                  <td>{{ item.user.profile.membership_code}}</td>     
+                  <td>
+                    <a class="btn btn-success" href="{% url 'approve_membership' pk=item.pk %}" >
+                    <i class="fa fa-edit">approve</i></a>
+                  </td>
+                  <td>
+                    <a class="btn btn-warning" href="{% url 'disapprove_membership' pk=item.pk %}" >
+                    <i class="fa fa-edit">disapprove</i></a>
+                  </td>
+                  </tr>
+                {% endfor %}
+                {% endif %}
+                </tbody>  
+              </table>
+            </div>
+          </div>          
+        </div>
+      </div>
+    </section>
+    
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript">
+ 
+</script>
+{% endblock %}
+
+

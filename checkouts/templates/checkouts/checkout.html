@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block style %}
+<style>
+	.jumbotron {
+		text-align:center;
+    background-color: #88e48f;
+	}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class = "col-sm-10 col-sm-offset-1">      
+
+
+{% block jumbotron %}
+
+{% if alert %}
+<!-- Main jumbotron for a primary marketing message or call to action -->
+
+      <div class="jumbotron">
+{% if transaction.payment_mode == 'AP' %}
+      <h3>Transaction Successful!</h3> 
+      <h4>An approval request has been sent to your institution affiliate manager. Thank you for your patronage. Incase you want a direct patronage you can choose another type of payment gateway</h4>
+      <p>Sales Representative-{{ sales_rep }}</p>
+
+{% else %}
+        <h3>{{ alert }}</h3>
+        <p>Transaction ID-{{ transaction.transaction_id }}</p>
+        <p>BANK-{{ bank }}</p>
+        <p>Account Number-{{ account }}</p>
+        <p>Sales Representative-{{ sales_rep }}</p>
+        <p>Total Payable - N{{ transaction.cost_with_vats}}</p>
+        <!-- <p> Message -{{message}}</p> -->
+      </div>
+{% endif %}
+{% endif %}
+{% endblock %}
+
+
+
+
+{% if form %}
+<!-- Main content -->
+    <section class="content">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="box">
+            <div class="box-header">
+              <h2>Requested Data - TOTAL COST WITH 5% VATS - N{{ cost_with_vats }}</h2>
+            </div>    
+            <!-- /.panel-header -->
+            <div class="box-body">
+              <table id=data_box class="table table-bordered table-hover table-stripe" style="overflow-x: auto;">
+                <thead>
+                  <tr>                    
+                    <th>DATABASE</th>
+                    <th>VARIABLE(S)</th>
+                    <th>TABLE</th>
+                    <th>CATEGORY(IES)</th>
+                    <th>YEAR(S)</th>
+                    <th>DATA COST</th>
+                    <th>DELETE</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {% if data %}
+                  {% for item in data  %}
+                  <tr>                    
+                    <td>{{ item.table.database }}</td>
+                    <td>{{ item.display_variables}}</td>
+                    <td>{{ item.code}}</td>
+                    <td>{{ item.display_categories_of_aggregation }}</td>
+                    <td>{{ item.display_years }}</td>
+                    <td>{{ item.data_price }}</td>
+                    <td>
+                      <a class="btn btn-block btn-danger" href="{% url 'sales_data_delete' pk=item.pk %}?next={{request.path}}" >
+                      <i class="fa fa-times"></i></a>
+                      </td>
+                  </tr>
+                  {% endfor %}
+                  {% endif %}
+                  </tbody>                  
+                </table>
+              </div>
+            </div>
+          </div>          
+        </div>
+
+      <div class="row">
+        <div class='col-sm-4 col-sm-offset-4'>
+          <form method="post" action="">
+          {% csrf_token %}
+            {{ form|crispy }}          
+            <button class="btn btn-default"type="submit">Proceed to Payment Gateway</button>
+          </form>
+        </div>
+      </div>      
+    </section>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript">
+  $(function(){
+    if($("#id_payment_mode").val()!='AP'){
+    $("#div_id_institution, #div_id_institution_code").hide()
+    }
+  });
+  $("#id_payment_mode"). change(function(){
+    if($(this).val()=='AP'){
+      $("#div_id_institution, #div_id_institution_code").show()
+      $("#id_institution, #id_institution_code").attr("required", "required");
+    }else{
+      $("#div_id_institution, #div_id_institution_code").hide()
+    }
+    
+  });
+</script>
+{% endblock %}
+
+

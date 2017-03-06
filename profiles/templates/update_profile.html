@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block head_title %}{% trans "Update Profile" %}{% endblock %}
+
+{% block content %}
+<div class= "content">
+	<div class ='row'>
+		<div class= 'col-md-3'>
+			<div class="box">
+            	<div class="box-header">
+            	<div class = "box-body">
+            	<h3> Hello {{ request.user.username }}</h3>
+            	</div>
+			<form method="post" action="{% url 'update_profile' %}">
+  			{% csrf_token %}
+  				{{ user_form|crispy }}
+  				{{ profile_form|crispy }}
+  				<div class = "box-footer">
+  				<button class="btn btn-default"type="submit">Save changes</button>
+			</form>
+			</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-9">
+          <div class="box">
+            <div class="box-header">
+              <h2>We really appreciate your patronage. Here are the successful transactions you have made with us thank you.</h2>
+            </div>    
+            <!-- /.panel-header -->
+            <div class="box-body">
+              <table id=data_box class="table table-bordered table-hover table-stripe">
+                <thead>
+                  <tr>                    
+                    <th>Transaction Id</th>
+                    <th>Request Date</th>
+                    {% if request.user.profile.affiliate_membership and request.user.profile.membership_approved %}
+                    <th>Approved</th>
+                    {% endif %}
+                    <th>Payment Confirmed</th>
+                    <th>Total Cost</th>
+                    <th>Delivery Status</th>    
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {% if pre_trans %}
+                  {% for item in pre_trans  %}
+                  <tr>                    
+                    <td><button type="button" class="btn btn-block btn-default" data-toggle="modal" data-target="#{{ item.id }}" >{{ item.transaction_id }}</button>
+                    <!-- Modal -->
+                  		<div class="modal fade" id="{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="{{ item.transaction_id }}" aria-hidden="true" style="color: black;">
+                    		<div class="modal-dialog" role="document">
+                      		<div class="modal-content">
+                        		<div class="modal-header">
+                          			<button type="button" class="close" data-dismiss="modal" area-label="Close" ><span aria-hidden="true">&times;</span></button>
+                          				<h4 class="modal-title" id="{{ Item.id }}">Transaction {{ item.transaction_id }} Details</h4>
+                        			</div>
+                        		<div class="modal-body">
+			              			<table class="table table-bordered table-hover table-stripe">
+			                			<thead>
+			                  				<tr>                    
+							                    <th>DATABASE</th>
+							                    <th>VARIABLE(S)</th>
+							                    <th>TABLE</th>
+							                    <th>CATEGORY(IES)</th>
+							                    <th>YEAR(S)</th>
+							                    <th>DATA COST</th>
+			                    
+			                  				</tr>
+			                  			</thead>
+			                  			<tbody>				                  
+						                  {% for data in item.data_requests.all  %}
+						                  <tr>                    
+						                    <td>{{ data.table.database }}</td>
+						                    <td>{{ data.display_variables }}</td>
+						                    <td>{{ data.code }}</td>
+						                    <td>{{ data.display_categories_of_aggregation }}</td>
+						                    <td>{{ data.display_years }}</td>
+						                    <td>{{ data.data_price }}</td>
+						                  </tr>
+			                  				{% endfor %}  
+			                  			</tbody>                  
+			                		</table>
+             
+                        		</div>
+                        		<div class="modal-footer">
+                          			<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                          			<button type="button" class="btn btn-primary">Do something</button>
+                        		</div>
+                      		</div>
+                     		</div>
+                    	</div>
+                 	</td>
+                    <td>{{ item.time }}</td>
+                    {% if request.user.profile.affiliate_membership and request.user.profile.membership_approved %}
+                    <td>{% if item.payment_mode == 'AP' %} {% if item.affiliate_manager_approved == True %}Approve{% elif item.affiliate_manager_approved == False %} Disapproved {% else %} Pending {% endif %} {% else %} ------ {% endif %}</td>
+                    {% endif %}
+                    <td>{% if item.payment_mode != 'AP' %} {% if item.payment_confirmed == True %}Confirmed{% elif item.item.payment_confirmed == False %} Not yet{% else %} Pending {% endif %} {% else %} ------ {% endif %} </td>
+                    <td>{{ item.cost_with_vats}}</td>
+                    <td>{% if item.data_delivered == True  %}Delivered{% elif item.item.data_delivered == False %} Not yet{% else %} Pending {% endif %}</td>
+                  </tr>                  
+                  {% endfor %}
+                  {% endif %}
+                  </tbody>                  
+                </table>
+              </div>
+            </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript">
+	$(function() {
+		$("#id_first_name, #id_last_name, #id_sex, #id_phone_number").attr("required", "required");
+	}); 
+	$(function(){
+		if ($("#id_affiliate_membership").is(":checked")){
+				$("#div_id_institution, #div_id_membership_code").show();
+				$("#id_institution, #id_membership_code").attr("required", "required");
+			}else {
+				$("#div_id_institution, #div_id_membership_code, #div_id_institution_code").hide();
+				}		
+	});
+
+	$("#id_affiliate_membership").change(function(){
+			if ($(this).is(":checked")){
+				$("#div_id_institution, #div_id_membership_code, #div_id_institution_code").show();
+				$("#id_institution, #id_membership_code, #id_institution_code").attr("required", "required");
+
+			}else{
+				$("#div_id_institution, #div_id_membership_code, #div_id_institution_code").hide();
+				$("#id_institution, #id_membership_code, #id_institution_code").val('');
+				$("#id_institution, #id_membership_code, #id_institution_code").attr("required", false );
+			}
+		});
+</script>
+{% endblock %}

@@ -1,0 +1,142 @@
+<!-- <aside class="main-sidebar"> -->
+
+    <!-- sidebar: style can be found in sidebar.less -->
+    <div class="sidebar panel" style=" max-height: 1500px; overflow-y: scroll; margin-top: -18px;">
+      <!-- Sidebar Menu -->
+      <div class="sidebar-menu">
+        <div class="header" style="text-align: center;">        
+            {% if request.user.is_authenticated %}
+       <h3><strong> Welcome {{ request.user }}</strong></h3>
+
+       {% else %}
+          <form class="login" method="POST" action="{% url 'account_login' %}?next={{request.path}}">
+        {% csrf_token %}  
+
+        <div id="div_id_login" class="form-group"> <label for="id_login" class="control-label  requiredField">
+                Login<span class="asteriskField">*</span> </label> <div class="controls "> <input autofocus="autofocus" class="textinput textInput form-control" id="id_login" name="login" placeholder="Username or e-mail" required="" type="text"> </div> </div> <div id="div_id_password" class="form-group"> <label for="id_password" class="control-label  requiredField">
+                Password<span class="asteriskField">*</span> </label> <div class="controls "> <input class="textinput textInput form-control" id="id_password" name="password" placeholder="Password" required="" type="password"> </div> </div>
+
+                <a class="btn btn-default button secondaryAction" href="{% url 'account_signup' %}?next={% url 'update_profile' %}" style="color: #070f13;"><strong>Sign up?</strong></a>
+
+                <a class="btn btn-default button secondaryAction" href="{% url 'account_reset_password' %}?next={{request.path}}" style="color: #070f13;"><strong>Forgot Password?</strong></a>
+          
+                <button class="btn btn-primary primaryAction" type="submit" style="color: #070f13;"><strong>Sign In</strong></button>
+        </form>
+        {% endif %}       
+        </div>
+      </div>
+        <section class="content" >      
+      <!-- Default box -->
+      <div class="box">
+        <div class="box-header with-border" >
+          <h3 class="box-title" id="db_right">Title</h3>
+
+          <!-- <div class="box-tools pull-right">
+            <button type="button" class="btn btn-box-tool" data-toggle="tooltip" title="Edit">
+              <i class="fa fa-edit"></i></button>
+            <button type="button" class="btn btn-box-tool" data-widget="collapse" data-toggle="tooltip" title="Collapse">
+              <i class="fa fa-minus"></i></button>
+            <button type="button" class="btn btn-box-tool" data-widget="remove" data-toggle="tooltip" title="Remove">
+              <i class="fa fa-times"></i></button>
+          </div> -->
+        </div>        
+        <div class="box-body" >
+          <p><h5>{{ database.name }}</h5></p>
+          <ul id = "data">            
+            <li id="tabu">Table</li>
+            <li id ="level">Level</li>
+            <li id="frequency">Frequency</li>
+            <p id="con_price"></p>
+            <li>
+              Category(ies)
+              <ul id="category">
+              </ul>
+            </li> 
+            <p id='cat_count'></p>          
+            <li>
+              Variable(s)
+              <ul id="variable">                
+              </ul>
+            </li>
+            <p id='var_count'> </p>
+            <li>
+              Year(s)
+              <ul id="year">                
+              </ul>
+            </li>
+          </ul>          
+        </div>
+        <!-- /.box-body -->
+        <div class="box-footer">
+          Data Cost
+        </div>
+        <!-- /.box-footer-->
+      </div>
+      <!-- /.box -->
+{% if unpurchased %}
+  <div class='row'>
+    <div class="col-md-7">
+      <h4><strong>TOTAL COST OF SELECTED DATA - N{{total_cost}}</strong></h4>
+    </div>
+    <div class="col-md-5">
+      <a class="btn btn-block btn-primary" href="{% url 'checkout' %}">Checkout</a>
+    </div>
+  </div>
+
+      
+  {% for item in unpurchased %}
+      <!-- Default box -->
+      <div class="box box-default collapsed-box">
+        <div class="box-header with-border">
+          <div class="box-title" style="margin-bottom: -15px; margin-top: -25px;"><h5 style="margin-top: 40px;">{{ item.table.database }}</h5></div>
+
+          <div class="box-tools pull-right">
+            <button type="button" class="btn btn-box-tool" data-toggle="tooltip" title="Edit">
+              <i class="fa fa-edit"></i></button>
+            <button type="button" class="btn btn-box-tool" data-widget="collapse" data-toggle="tooltip" title="Expandable">
+              <i class="fa fa-plus"></i></button>
+            <!-- <button type="button" class="btn btn-box-tool" data-widget="remove" data-toggle="tooltip" title="Remove"> -->
+            <a class="btn btn-box-tool" href="{% url 'sales_data_delete' pk=item.pk %}" >
+              <i class="fa fa-times"></i></a>
+              <!-- </button> -->
+          </div>
+        </div>        
+        <div class="box-body">
+          <ul>            
+            <li>Table - {{ item.table }}</li>
+            <li>Level - {{ item.level_of_aggregation }}</li>
+            <li>Frequency - {{ item.frequency }}
+            </li>
+            <li>Contenated Price - N{{ item.concat_price }}
+            </li>
+            <li>
+              Categoy(ies)- {{ item.display_categories_of_aggregation }}              
+            </li> 
+            <li>
+              Variable(s) - {{ item.display_variables }}
+              <ul>                
+              </ul>
+            </li>
+            <li>
+              Year(s) - {{ item.display_years }}
+              <ul>                
+              </ul>
+            </li>
+          </ul>          
+        </div>
+        <!-- /.box-body -->
+        <div class="box-footer">
+          Data Cost -N{{ item.data_price}}
+        </div>
+        <!-- /.box-footer-->
+      </div>
+      <!-- /.box -->
+  {% endfor %}
+
+{% endif %}
+      
+    </section>
+            <!-- /.sidebar-menu -->
+    </div>
+    <!-- /.sidebar -->
+  <!-- </aside> -->

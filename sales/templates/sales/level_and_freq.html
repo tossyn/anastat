@@ -1,0 +1,27 @@
+<div class="col-md-12">
+
+  <div class="form-group">
+    <label>Level of Aggregation</label>
+    <select class="form-control select2" id= "loa" name= "loa" style="width: 100%;">
+      <!-- <option selected="selected" disable =True>Select level of aggregation</option> -->
+      {% for level in levels %}       
+      <option value= "{{ level.pk }}">{{ level.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <!-- /.form-group -->
+</div>
+<!-- /.col -->
+            
+<div class="col-md-12">
+
+  <div class="form-group">
+    <label>Frequency</label>
+    <select class="form-control select2" id = "freq" name="freq" style="width: 100%;">
+    </select>
+  </div>
+
+  <!-- /.form-group-->
+</div>
+

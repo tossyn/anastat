@@ -1,0 +1,414 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+
+  <div class="row">
+    {% block left_sidebar %}
+      <div class = "col-md-4">      
+        {% include 'sales/left_sidebar.html' %}
+      </div><!-- /col-md-3 -->
+    {% endblock left_sidebar %}
+
+    {% block centre %}
+      <div class="col-md-5">
+        <div class="panel panel-default" style="margin-top: -18px;">        
+          <div class="panel-heading with with-border" style="text-align: center;">
+            <h2>
+              WELCOME TO ANASTAT DASHBOARD
+              <p><small>You can now select the data you want.</small></p>
+            </h2> 
+          </div>
+          <!-- Main content -->    
+          <section class="content">              
+            <div class="box box-default">
+              <div class="box-header with-border">
+                <h4 id ="db">
+                  SELECT DATABASE FROM THE LEFT SIDE BAR
+                </h4>
+              </div>
+              <!-- /.panel-header -->            
+              <div class="box-body">
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="form-group">
+                      <form action="{% url 'sales' %}" method="POST" id="data_form">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                          <div class="row">
+                            <div class="col-md-8">
+                            </div>
+                            <div class="col-md-4">
+                              <input type="submit" class="btn btn-block btn-primary", value="Add to Cart">      
+                            </div>                  
+                          </div>                  
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+                <!-- /.panel --><!-- Your Page Content Here -->  
+            </section>          
+            <!-- /.content -->          
+        </div>
+      </div>
+    {% endblock centre %}
+
+    {% block right_sidebar %}
+      <div class= "col-md-3">
+      {% include 'sales/right_sidebar.html' %}
+      </div>
+    {% endblock right_sidebar %}  
+  </div>
+      
+{% endblock content %}
+
+
+{% block script %}
+<script type="text/javascript">
+	/*Remove the prepopulated options from database or leave only the selected options*/	
+
+	$(function() {
+		$("select#id_table option, select#id_level_of_aggregation option, select#id_frequency option, select#id_categories_of_aggregation option, select#id_variables option, select#id_years option").each(function(){
+			$(this).not("option:Selected").remove();
+		})
+	});
+
+	
+	/* call function to load the variables and years options at page load*/
+	$(function() {/* If the length of select option is less or equal zero populate with select options depending on the Table, Level of Aggregation and Frequecncy values*/
+		if($("select#id_variables option").length<=0 || $("select#id_years option").length<=0){
+    var t_pk = $("select#id_table option:selected").val();
+    var l_pk = $("select#id_level_of_aggregation option:selected").val();
+    var f_pk = $("select#id_frequency option:selected").val();
+    var url1 = '{% url "sales_vars" %}';
+    var url2 = '{% url "sales_years" %}';
+    var url3 = '{% url "sales_concat_price" %}';
+    if (t_pk == "" || l_pk == "" || f_pk == ""  ){
+      $("select#id_variables").html("");
+      /*$("select#id_categories_of_aggregation").html("");*/
+      $("select#id_years").html("");
+      $("#con_price").html("");
+
+    }
+    else {
+      console.log(t_pk, l_pk, f_pk, url1, url2, url3)
+      $.when(
+        $.ajax({
+            url: url1,
+            data: {'pk1': t_pk, 'pk2': l_pk, 'pk3': f_pk},
+            dataType: 'json',
+        }),        
+        $.ajax({
+            url: url2,
+            data: {'pk1': t_pk, 'pk2': l_pk, 'pk3': f_pk},
+            dataType: 'json',
+        }),
+        $.ajax({
+            url: url3,
+            data: {'pk1': t_pk, 'pk2': l_pk, 'pk3': f_pk},
+            dataType: 'json',            
+        })
+      ).then(function([data1],[data2],[data3]){
+              console.log(data1);
+              /* Generate options for select input dynamically*/
+              var options1 = '<option value="" disabled="disabled"> Select Variable(s)</option>';
+              for (var i = 0; i < data1.length; i++){
+                options1 += '<option value="' + data1[i].pk + '">' + data1[i].fields['name'] + '</option>'
+              };
+              console.log(options1, data1.length)
+              $("select#id_variables").html(options1);
+
+              console.log(data2);
+              var options2 = '<option value="" disabled="disabled" > Select year(s)</option>';
+              for (var i = 0; i < data2.length; i++){
+                options2 += '<option value="' + data2[i].pk + '">' + data2[i].fields['yr'] + '</option>'
+              };
+              console.log(options2, data2.length)
+              $("select#id_years").html(options2);
+
+              console.log(data3)
+              $("#con_price").html("Concatenated Price: N"+data3[0].fields['concat_price'])
+        });         
+    }
+	}
+  })
+
+	/* call function to load the category of aggregation options at page load*/
+
+	$(function() {/* If the length of select option is less or equal zero populate with select options depending on the level of aggregation value*/
+		if($("select#id_categories_of_aggregation option").length<=0){
+    var pk = $("select#id_level_of_aggregation option:selected").val();
+    var url1 = "{% url 'sales_category' %}"
+    if (pk == ""){
+      $("select#id_categories_of_aggregation").html(" ");
+    }
+    else{
+      $.ajax({
+          url: url1,
+          data: {'pk': pk},
+          dataType: 'json',
+          success:function(data){
+            /*console.log(data);*/            
+            var options1 = '<option value="" disabled="disabled"> Select Variable(s)</option>';
+            for (var i = 0; i < data.length; i++){
+              options1 += '<option value="' + data[i].pk + '">' + data[i].fields['name'] + '</option>'
+            };
+            /*console.log(options1, data.length)*/
+            $("select#id_categories_of_aggregation").html(options1);
+          }
+      });
+    }
+	}
+
+  });
+
+    /*Jquery to populate the table select input from the database(left-sidebar)*/	
+  	$(".treeview-menu li a").click(function(event) {
+	    event.preventDefault();    
+	    var url1 = $(this).attr('href');
+	    var db = $(this).text();
+	    $('#db').html(db);
+	    $('#db_right').html(db);	    
+	    $('select#id_level_of_aggregation').html('');
+	    $('select#id_frequency').html('')
+	    if (url1 == ""){
+	      $("select#id_table").html("");      
+	    }
+	    else{
+	      $.ajax({
+	          url: url1,
+	          /*data: {'pk': pk},*/
+	          dataType: 'json',
+	          success:function(data){
+	            /*console.log(data);*/            
+	            var options1 = '<option value="" > Select Table</option>';
+	            for (var i = 0; i < data.length; i++){
+	              options1 += '<option value="' + data[i].pk + '">' + data[i].fields['name'] + '</option>'
+	            };
+	            /*console.log(options1, data.length)*/
+	            $("#id_table").html(options1);
+
+	          }
+	      });
+	    }
+
+	});
+    /*Jqueries for table to populate level of aggregation and frequency*/
+  $("select#id_table").change(function() {
+    var pk = $("select#id_table option:selected").val();  
+    var url1 = '{% url "sales_level" %}';
+    var url2 = '{% url "sales_freq" %}';
+    var selector1 = 'select#id_level_of_aggregation';
+    var selector2 = 'select#id_frequency';  
+    /*Depopulate variable, category of aggregation and years options*/
+    $("select#id_variables").html("");
+    $("select#id_categories_of_aggregation").html("");
+    $("select#id_years").html("");
+
+    $("select#id_variables").val(null);
+    $("select#id_categories_of_aggregation").val(null);
+    $("select#id_years").val(null);
+    /*if the selected value for table is null or empty then set the discard the child elements in the both Level of Aggregation and frequency*/
+    if (pk == ''){
+      $(selector1).html('');
+      $(selector2).html('');
+
+    }
+    /*else table has a real selected value*/
+    /*this ajax call is capable of processing mutiple data at the same time*/
+    else {
+      $.when(
+        $.ajax({
+          url: url1,
+          data: {'pk':pk },
+          dataType: 'json',
+        }),
+        $.ajax({
+          url: url2,
+          data: {'pk':pk },
+          dataType: 'json',
+        })
+      /*It is important to put data1 and data2 in different square bracket( turn them to separate list or array) else the data will be undefined*/
+      ).then(function([data1], [data2]){
+          /*console.log(data1);*/
+          var options1 = '<option value=""> Select Level of Aggregation</option>';
+          for (var i = 0; i < data1.length; i++){
+            options1 += '<option value="' + data1[i].pk + '">' + data1[i].fields['name'] + '</option>'
+          };
+          /*console.log(options1, data1.length)*/
+          $(selector1).html(options1);
+
+          /*console.log(data2);*/
+          var options2 = '<option value="" > Select Frequecy</option>';
+          for (var i = 0; i < data2.length; i++){ 
+            options2 += '<option value="' + data2[i].pk + '">' + data2[i].fields['name'] + '</option>'
+          };
+          /*console.log(options2, data2.length)*/
+          $(selector2).html(options2);
+        });
+    
+    }
+  })
+/*Jquery and Ajax to populate variable  slect options, years select options and Concat Price-right bar panel*/
+  $("select#id_level_of_aggregation, select#id_frequency"). change(function() {
+    var t_pk = $("select#id_table option:selected").val();
+    var l_pk = $("select#id_level_of_aggregation option:selected").val();
+    var f_pk = $("select#id_frequency option:selected").val();
+    var url1 = '{% url "sales_vars" %}';
+    var url2 = '{% url "sales_years" %}';
+    var url3 = '{% url "sales_concat_price" %}';
+    if (t_pk == "" || l_pk == "" || f_pk == ""  ){
+      $("select#id_variables").html("");
+      /*$("select#id_categories_of_aggregation").html("");*/
+      $("select#id_years").html("");
+      $("#con_price").html("");
+
+    }
+    else {
+      console.log(t_pk, l_pk, f_pk, url1, url2, url3)
+      $.when(
+        $.ajax({
+            url: url1,
+            data: {'pk1': t_pk, 'pk2': l_pk, 'pk3': f_pk},
+            dataType: 'json',
+        }),        
+        $.ajax({
+            url: url2,
+            data: {'pk1': t_pk, 'pk2': l_pk, 'pk3': f_pk},
+            dataType: 'json',
+        }),
+        $.ajax({
+            url: url3,
+            data: {'pk1': t_pk, 'pk2': l_pk, 'pk3': f_pk},
+            dataType: 'json',            
+        })
+      ).then(function([data1],[data2],[data3]){
+              console.log(data1);
+              /* Generate options for select input dynamically*/
+              var options1 = '<option value="" disabled="disabled"> Select Variable(s)</option>';
+              for (var i = 0; i < data1.length; i++){
+                options1 += '<option value="' + data1[i].pk + '">' + data1[i].fields['name'] + '</option>'
+              };
+              console.log(options1, data1.length)
+              $("select#id_variables").html(options1);
+
+              console.log(data2);
+              var options2 = '<option value="" disabled="disabled" > Select year(s)</option>';
+              for (var i = 0; i < data2.length; i++){
+                options2 += '<option value="' + data2[i].pk + '">' + data2[i].fields['yr'] + '</option>'
+              };
+              console.log(options2, data2.length)
+              $("select#id_years").html(options2);
+
+              console.log(data3)
+              /* Show the price for concat table on right side bar*/
+              $("#con_price").html("Concatenated Price: N"+data3[0].fields['concat_price'])
+        });         
+    }
+  })
+/*Ajax to Populate categories of aggregation options*/
+  $("select#id_level_of_aggregation"). change(function() {
+    var pk = $("select#id_level_of_aggregation option:selected").val();
+    var url1 = "{% url 'sales_category' %}"
+    if (pk == ""){
+      $("select#id_categories_of_aggregation").html(" ");
+    }
+    else{
+      $.ajax({
+          url: url1,
+          data: {'pk': pk},
+          dataType: 'json',
+          success:function(data){
+            /*console.log(data);*/            
+            var options1 = '<option value="" disabled="disabled"> Select Variable(s)</option>';
+            for (var i = 0; i < data.length; i++){
+              options1 += '<option value="' + data[i].pk + '">' + data[i].fields['name'] + '</option>'
+            };
+            /*console.log(options1, data.length)*/
+            $("select#id_categories_of_aggregation").html(options1);
+          }
+      });
+    }
+
+  });
+
+/*Jqueries for controlling the righ-sidebar*/
+
+  /*Control for table, level of Aggregation and Frequency*/
+  $("select#id_table, select#id_level_of_aggregation, select#id_frequency"). change(function() {
+      var t = $("select#id_table option:selected").text();
+      var l = $("select#id_level_of_aggregation option:selected").text();
+      var f = $("select#id_frequency option:selected").text();
+      /*$("#data").append("<li> "+t+" </li>");*/
+      $("#tabu").html("Table- "+t);
+      $("#level").html("Level of Aggregation- "+l);
+      $("#frequency").html("Frequency- "+f);
+  })
+  /* Control for cateroty of aggregation*/
+  
+  $('select#id_categories_of_aggregation').change(function(){
+    $("#category").empty();/* Discard the child element of the selector*/
+    var cat_count = 0;
+    $('select#id_categories_of_aggregation option:selected').each(function() {
+    	if ( $(this).val() ==''){
+    		$("#category").empty();
+    		cat_count = 0;
+    		$('#cat_count').html('')
+    	}else{
+    	$("#category").append("<li>"+$(this).text()+"</li>");
+    	cat_count = cat_count +1;
+    	$('#cat_count').html(cat_count)
+    	}
+    });
+  })
+  /* Control for varaibles*/  
+  $('select#id_variables').change(function(){
+    $("#variable").empty();
+    var var_count = 0;
+    $('select#id_variables option:selected').each(function() {
+    	if ( $(this).val() ==''){
+    		$("#variable").empty();
+    		var_count = 0;
+    		$('#var_count').html('')
+    	}else {
+    	$("#variable").append("<li>"+$(this).text()+"</li>");
+    	var_count= var_count+1
+    	$('#var_count').html(var_count)
+    	}
+    });
+  })
+  /* Control for years*/
+  $('select#id_years').change(function(){
+    $("#year").empty();
+    $('select#id_years option:selected').each(function() {
+    	if($(this).val()==''){
+    		$("#years").empty();   		
+    	}else {
+    	$("#year").append("<li>"+$(this).text()+"</li>");
+    	}
+    });
+  })
+
+/*$("select#freq").change(function(){
+
+})*/
+
+$(".box box-default collapsed-box div a ").click(function() {
+    event.preventDefault();   
+    var url1 = $(this).attr('href');
+    console.log(url1)   
+    $.ajax({
+        url: url1,        
+        dataType: 'json',
+        success:function(data){
+          console.log(data)
+        }
+    });
+  });
+</script>
+{% endblock %}
+
